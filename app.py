@@ -76,12 +76,35 @@ def generate_answer(query: str, passages):
 # -------------------------------------------------------------------
 #  Streamlit UI
 # -------------------------------------------------------------------
-st.title("Fulfillment-Copilot")
+# -------------------------------------------------------------------
+#  Streamlit UI
+# -------------------------------------------------------------------
+st.set_page_config(page_title="Fulfillment-Copilot", page_icon="🚚")
 
-query = st.text_input("Ask why a shipment was delayed:", placeholder="e.g. Why was my shipment delayed?")
+st.title("🚚 Fulfillment-Copilot")
+st.caption("Quickly explain **why** a shipment was delayed: Weather, Traffic, or Inventory.")
+
+# ----- Sidebar with instructions -----
+with st.sidebar:
+    st.header("About")
+    st.write(
+        "This mini app looks up real logistics delay reasons, "
+        "feeds the most relevant ones to **GPT-4o**, and returns a concise answer."
+    )
+    st.subheader("Try questions like:")
+    st.markdown(
+        "- Why was my shipment delayed?\n"
+        "- What caused yesterday’s delivery holdup?\n"
+        "- Why did the package miss pickup?"
+    )
+    st.write("Made with FAISS, Streamlit & OpenAI.")
+
+# ----- Main input -----
+query = st.text_input("Ask your delay question:", placeholder="e.g. Why was my shipment delayed?")
+
 if st.button("Explain") or query:
     if not os.getenv("OPENAI_API_KEY"):
-        st.error("OpenAI API key not set. `export OPENAI_API_KEY=...` in your Terminal and restart.")
+        st.error("OpenAI API key not set.  Run `export OPENAI_API_KEY=...` and restart.")
     elif query.strip() == "":
         st.warning("Please enter a question.")
     else:
@@ -89,10 +112,34 @@ if st.button("Explain") or query:
             passages = retrieve(query)
             answer   = generate_answer(query, passages)
 
-        st.subheader("Answer")
-        st.write(answer)
+        # ----- Pretty answer tag -----
+        first_word = answer.split()[0] if answer else "Unknown"
+        TAG_COLORS = {
+            "Weather": "blue",
+            "Traffic": "orange",
+            "Inventory": "green",
+            "Unknown": "gray",
+        }
+        tag_color = TAG_COLORS.get(first_word, "gray")
 
-        st.subheader("Top-K context")
-        for p in passages:
-            st.write(f"**{p['rank']}.** {p['text']}  _(dist {p['dist']:.2f})_")
+        st.markdown(
+            f"<h3 style='display:inline-block; padding:6px 10px;"
+            f" border-radius:6px; background:{tag_color}; color:white;'>{first_word}</h3>",
+            unsafe_allow_html=True,
+        )
+        st.write(answer[len(first_word):].lstrip(" -–—"))  # explanation part
+
+        # ----- Context passages -----
+        with st.expander("Show retrieval context"):
+            for p in passages:
+                st.write(f"**{p['rank']}.** {p['text']}  _(distance {p['dist']:.2f})_")
+
+# ----- Footer -----
+st.markdown(
+    "<hr style='margin-top:2em;margin-bottom:0;'>"
+    "<p style='font-size:0.8em;'>Embeddings: MiniLM-L6-v2 • "
+    "LLM: GPT-4o-mini • Top-K: 10</p>",
+    unsafe_allow_html=True,
+)
+
 
