@@ -1,4 +1,16 @@
 Why was my shipment delayed?,Weather
 Why was the delivery late yesterday?,Traffic
 Why did the package miss its pickup?,Inventory
+My parcel is late because of storms,Weather
+What caused yesterday’s shipment delay?,Weather
+Why are trucks stuck on the highway?,Traffic
+What’s slowing deliveries in the city?,Traffic
+Why did the van get rerouted?,Traffic
+Why is the warehouse out of stock?,Inventory
+What made today’s pickup impossible?,Inventory
+Why did my order miss the cut-off?,Inventory
+Was there a snowstorm delay?,Weather
+Did heavy rain affect shipping?,Weather
+Why did road congestion cause a holdup?,Traffic
+Was inventory shortage the reason for backorder?,Inventory
 
