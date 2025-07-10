@@ -3,3 +3,7 @@ pyarrow
 boto3
 s3fs
 kaggle
+streamlit
+sentence-transformers
+faiss-cpu
+openai # add core libs
