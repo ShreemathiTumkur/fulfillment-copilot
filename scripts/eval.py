@@ -1,5 +1,16 @@
 import csv, subprocess, re, sys, pathlib, textwrap
 
+# ------------------------------------------------------------------
+# Canonical keyword → list of acceptable variants
+# ------------------------------------------------------------------
+SYN = {
+    "weather":  ["weather", "rain", "storm", "snow"],
+    "traffic":  ["traffic", "congestion", "road"],
+    "inventory": ["inventory", "stock", "out-of-stock"],
+    "unknown":  ["unknown"]
+}
+
+
 # ---------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------
@@ -12,16 +23,16 @@ TOP_K   = "3"                                     # how many passages to pass
 # ---------------------------------------------------------------------
 def call_rag(question: str) -> str:
     """
-    Run rag_search.py as a subprocess and capture the LLM's final answer.
-    The answer is everything AFTER the line that starts with 'Answer:'.
+    Run rag_search.py and return only the LLM answer section.
     """
     result = subprocess.run(
         ["python", SCRIPT, question, "-k", TOP_K],
         capture_output=True, text=True, check=True
     )
-    # Regex: grab text after the --- line and 'Answer:'
-    match = re.search(r"^---\s*Answer:\s*\n(.*)", result.stdout, re.S)
+    # Capture everything after the line that starts 'Answer:'
+    match = re.search(r"^Answer:\s*\n([\s\S]*)", result.stdout, re.M)
     return match.group(1).strip() if match else ""
+
 
 def evaluate():
     total, hits = 0, 0
@@ -37,7 +48,17 @@ def evaluate():
             total += 1
 
             answer = call_rag(question)
-            ok = re.search(keyword, answer, re.I) is not None
+            first = next((ln.strip().lower() for ln in answer.splitlines() if ln.strip()), "")
+            first = first.replace("reason:", "").strip()       # in case "Reason:" sneaks back in
+
+            detected = None
+            for key, variants in SYN.items():
+                if any(first.startswith(v) for v in variants):
+                   detected = key
+                   break
+
+            ok = detected == keyword.lower()
+
             hits += ok
 
             print(f"Q: {question}")

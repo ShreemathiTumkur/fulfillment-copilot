@@ -32,7 +32,9 @@ def search(query: str, k: int = 3):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("query", help="free-text query")
-    parser.add_argument("-k", type=int, default=3, help="top-K")
+    parser.add_argument("-k", type=int, default=8, help="top-K")
+    TOP_K=10
+    temperature=0.0
     args = parser.parse_args()
 
     results = search(args.query, args.k)        # ← add this
@@ -48,20 +50,24 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 context = "\n".join(f"{r['rank']}. {r['text']}" for r in results)
 
-prompt = textwrap.dedent(f"""
-    You are Fulfillment-Copilot, a helpful logistics assistant.
-    Answer the user's question only using the information in the context.
-    If the context is not relevant, say "I don't have enough information."
+system_prompt = (
+    "You are Fulfillment-Copilot, an expert logistics assistant.\n"
+    "Use ONLY the context. Pick exactly ONE of these words:\n"
+    "Weather   Traffic   Inventory   Unknown\n"
+    "Respond with ONLY that single word on the first line. "
+    "Do NOT add anything else on that line. "
+    "Optionally add a second line explanation."
+)
 
-    Context:
-    {context}
-
-    Question: {args.query}
-    Answer in 2-3 sentences:
-""").strip()
+prompt = (
+    f"{system_prompt}\n\n"
+    f"Context:\n{context}\n\n"
+    f"Question: {args.query}\n"
+    f"Answer (2-3 sentences):"
+)
 
 response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": prompt}],
     temperature=0.2,
 )
