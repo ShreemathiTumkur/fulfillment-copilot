@@ -4,6 +4,12 @@ RAG-powered seller-support agent • 14-day side project
 
 [![Open Demo](https://img.shields.io/badge/Live_Demo-Streamlit-brightgreen?logo=streamlit)](https://fulfillment-copilot.streamlit.app)
 
+
+<p align="center">
+  <img src="demo.gif" width="600">
+</p>
+
+
 ---
 
 ## Tech stack & dataset
