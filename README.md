@@ -53,9 +53,8 @@ graph TD
   A --> UI
   K --> UI
 
-
-
-
+  K --> UI
+```
 ## Evaluation
 
 | Date       | Test set size | Accuracy |
