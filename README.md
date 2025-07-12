@@ -29,21 +29,29 @@ RAG-powered seller-support agent • 14-day side project
 
 ```mermaid
 graph TD
-    subgraph AWS
-        S3[(Parquet<br/>shipments.parquet)]
-        Glue((Glue Crawler))
-        Athena((Athena SQL))
-        S3 --> Glue --> Athena
-    end
+  %% AWS ingestion
+  subgraph AWS
+    S3[(S3 Parquet<br/>shipments.parquet)]
+    Glue[Glue Crawler]
+    Athena[Athena SQL]
+    S3 --> Glue
+    Glue --> Athena
+  end
 
-    S3 --> E[Embeddings<br/>(MiniLM)]
-    E --> F[FAISS index]
+  %% RAG pipeline
+  E[Embeddings<br/>MiniLM] --> F
+  F[FAISS index]
 
-    Q[User query] --> QE[Embed query] --> F
-    F --> K[Top-K passages] --> LLM[GPT-4o-mini] --> A[Answer<br/>Keyword]
-    Q --> UI[Streamlit app]
-    A --> UI
-    K --> UI
+  Q[User query] --> QE[Embed query]
+  QE --> F
+  F --> K[Top-K passages]
+  K --> L[GPT-4o-mini]
+  L --> A[Answer<br/>Keyword]
+
+  %% UI joins
+  Q --> UI[Streamlit UI]
+  A --> UI
+  K --> UI
 
 
 
